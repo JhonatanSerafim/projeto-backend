@@ -1,67 +1,18 @@
-# Aula 1 - Criando o Primeiro Servidor da API (Node.js + Fastify)
+# Aula 03 - Conectando Fastify com o Banco de Dados Neon (PostgreSQL)
 ## 🎯 Objetivo
-Nesta aula, vamos configurar o ambiente do nosso projeto backend, instalar o Fastify e criar nosso primeiro servidor rodando localmente.
+Nesta aula, vamos aprender a conectar um servidor Fastify ao banco de dados PostgreSQL utilizando o serviço Neon. Vamos instalar a biblioteca `pg`, configurar uma conexão segura com SSL e criar rotas que testam o servidor, a conexão e a listagem de dados no banco.
 
 ## 🧱 Passo a Passo
-### 1. Criação do Projeto
-Crie uma nova pasta com o nome do projeto e abra no VSCode:
+### 1. Instalar o Cliente PostgreSQL
+No terminal, instale o pacote:
 
 ```txt
-mkdir projeto-backend
-cd projeto-backend
-code .
+npm install pg
 ```
 
-### 2. Inicializando o Projeto Node
-No terminal, dentro da pasta do projeto, execute:
+### 2. Estrutura do Projeto
 
-```
-npm init -y
-```
-> O -y serve para aceitar todas as opções padrão automaticamente.
-
-### 3. Estrutura do package.json
-Após o comando, um arquivo chamado package.json será criado com o seguinte conteúdo:
-
-````json
-{
-  "name": "projeto-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
-````
-
-### Explicação dos campos principais:
-"name": Nome do projeto
-
-"version": Versão do projeto
-
-"main": Arquivo principal de entrada
-
-"scripts": Comandos que podem ser executados via terminal (ex: npm run test)
-
-"license": Tipo de licença do projeto (ISC é padrão do Node)
-
-### 4. Instalando o Fastify
-O que é o Fastify?
-Fastify é um framework web leve e rápido para Node.js, ideal para criar APIs de forma simples e performática.
-
-📚 Documentação oficial: https://fastify.dev/docs/latest/Guides/Getting-Started/
-
-Instalação:
-```
-npm install fastify
-```
-
-### 5. Criando o Primeiro Servidor
-Estrutura de pastas recomendada:
+Organização sugerida do projeto:
 
 ```
 projeto-backend/
@@ -69,85 +20,109 @@ projeto-backend/
 ├── package.json
 └── srv/
     └── server.js
+
 ```
-Código do servidor – srv/server.js:
+> Observe que a estrutura continua a mesma.
+
+### 3. Código do Servidor com Conexão ao Banco
+Arquivo: `srv/server.js`
 
 ```js
 import Fastify from 'fastify'
+import pkg from 'pg'
+const { Pool } = pkg
 
 const api = Fastify({
   logger: true
 })
 
-api.get('/', function (request, reply) {
-  reply.send({ hello: 'world' })
+// Substitua pelo link completo gerado no painel do Neon
+const pool = new Pool({
+  connectionString: 'postgresql://USUARIO:SENHA@HOST/DATABASE?sslmode=require',
+  ssl: {
+    rejectUnauthorized: false
+  }
 })
 
+// Rota raiz - apenas para testar o servidor
+api.get('/', async (request, reply) => {
+  reply.send({ message: 'Servidor funcionando!' })
+})
+
+// Rota de status - verifica a conexão com o banco
+api.get('/status', async (request, reply) => {
+  try {
+    const result = await pool.query('SELECT NOW()')
+    reply.send({ serverTime: result.rows[0].now })
+  } catch (err) {
+    api.log.error(err)
+    reply.code(500).send({ error: 'Erro ao conectar ao banco de dados' })
+  }
+})
+
+// Rota de listagem de usuários
+api.get('/users', async (request, reply) => {
+  try {
+    const result = await pool.query('SELECT * FROM users')
+    reply.send(result.rows)
+  } catch (err) {
+    api.log.error(err)
+    reply.code(500).send({ error: 'Erro ao buscar usuários no banco de dados' })
+  }
+})
+
+// Inicialização do servidor
 const start = async () => {
   try {
     await api.listen({ port: 3000 })
+    console.log('Servidor rodando em http://localhost:3000')
   } catch (err) {
     api.log.error(err)
     process.exit(1)
   }
 }
+
 start()
 ```
 
-### 6. Explicando o Código
+> 💡 Dica: Use a string de conexão fornecida pelo Neon com sslmode=require para evitar erros de certificado.
 
-import Fastify from 'fastify': importa o framework
-
-Fastify({ logger: true }): habilita logs no console
-
-api.get('/', ...): cria uma rota GET no caminho /
-
-reply.send({ hello: 'world' }): resposta da API
-
-api.listen({ port: 3000 }): inicia o servidor na porta 3000
-
-try/catch: trata erros que possam ocorrer ao subir o servidor
-
-### 7. Testando a API
+### ✅ 4. Testando
 Execute o servidor com:
 
 ```
 node srv/server.js
-````
+```
+
 Acesse no navegador:
+
 http://localhost:3000
-
-![alt text](image.png)
-
-
 
 Resposta esperada:
 
-
+```json
 {
-  "hello": "world"
+  "serverTime": "2025-07-29T13:00:00.000Z"
 }
 
+```
+Código do servidor – srv/server.js:
 
-## 📌 Dicas Extras
-Para que o import funcione, adicione "type": "module" no seu package.json.
+## 📌 Dicas
 
-Se preferir usar require, adapte o código para o padrão CommonJS:
-
-
-const fastify = require('fastify')({ logger: true })
-
-fastify.get('/', (req, reply) => {
-  reply.send({ hello: 'world' })
-})
-
-fastify.listen({ port: 3000 })
+- O Neon exige conexões SSL, por isso usamos ssl: { rejectUnauthorized: false }.
+- A classe Pool gerencia múltiplas conexões ao banco de forma eficiente.
+- Você pode criar outras rotas como /insert, /update ou /delete para interações completas com o banco de dados.
 
 ## 📋 Resumo da Aula
 
-Inicializamos o projeto Node com npm init -y
-Instalamos o framework Fastify com npm install fastify
-Criamos a estrutura de pastas e o arquivo server.js
-Desenvolvemos um servidor simples com uma rota GET
-Entendemos cada parte do código
-Rodamos a API localmente e testamos no navegador
+- Instalamos a biblioteca `pg` para conectar ao PostgreSQL.
+- Inserimos a string de conexão segura do Neon.
+- Criamos três rotas principais:
+- `/`: Testa se o servidor está ativo.
+- `/status`: Testa a conexão com o banco.
+- `/users`: Retorna os usuários cadastrados.
+- Rodamos e testamos a API localmente via navegador ou ferramentas como Postman.
+
+## ⏭️ Próxima Aula
+Criando rotas de CRUD com Fastify e PostgreSQL (INSERT, SELECT, UPDATE, DELETE)
