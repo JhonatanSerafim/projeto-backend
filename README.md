@@ -66,10 +66,10 @@ CREATE TABLE users (
 );
 ```
 ### 6. Inserindo um Registro de Teste
-
+```sql
 INSERT INTO users (nome, idade, cep, localidade, uf, bairro, logradouro, numero)
 VALUES ('João Silva', 30, '12345-678', 'São Paulo', 'SP', 'Centro', 'Rua das Flores', '123');
-
+```
 ## 7. Consultando os Dados
 
 SELECT * FROM users;
