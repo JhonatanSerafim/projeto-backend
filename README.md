@@ -151,3 +151,7 @@ Criamos a estrutura de pastas e o arquivo server.js
 Desenvolvemos um servidor simples com uma rota GET
 Entendemos cada parte do código
 Rodamos a API localmente e testamos no navegador
+
+## Desafio
+
+Criar uma rota mockada que puxe de um objeto uma lista de usuários
