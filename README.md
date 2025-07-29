@@ -1,153 +1,32 @@
-# Aula 1 - Criando o Primeiro Servidor da API (Node.js + Fastify)
-## 🎯 Objetivo
-Nesta aula, vamos configurar o ambiente do nosso projeto backend, instalar o Fastify e criar nosso primeiro servidor rodando localmente.
+# 📚 Introdução ao Backend - MFX Academy
 
-## 🧱 Passo a Passo
-### 1. Criação do Projeto
-Crie uma nova pasta com o nome do projeto e abra no VSCode:
+Este é um repositório que reúne o conteúdo das aulas de introdução ao desenvolvimento backend utilizando Node.js, com foco em boas práticas e uso do framework Fastify.
 
-```txt
-mkdir projeto-backend
-cd projeto-backend
-code .
-```
+Cada aula está organizada em uma branch separada, contendo os arquivos e exemplos práticos correspondentes.
 
-### 2. Inicializando o Projeto Node
-No terminal, dentro da pasta do projeto, execute:
+## 🔀 Aulas disponíveis
 
-```
-npm init -y
-```
-> O -y serve para aceitar todas as opções padrão automaticamente.
+Clique nos links abaixo para acessar cada branch diretamente:
 
-### 3. Estrutura do package.json
-Após o comando, um arquivo chamado package.json será criado com o seguinte conteúdo:
+- [Aula 01 - Criando o primeiro servidor com Fastify](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula01)
+- [Aula 02 - SQL e NEON](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula02)
+- [Aula 03 - Rotas e métodos HTTP](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula03)
+- [Aula 04 - Estrutura de pastas e organização](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula04)
+- [Aula 05 - Organizando e criando nossas rotas CRUD](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula05)
+- [Aula 06 - Integração com front-end](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula06)
 
-````json
-{
-  "name": "projeto-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
-````
+> 🔁 Sinta-se à vontade para clonar o projeto e explorar cada etapa com calma.
 
-### Explicação dos campos principais:
-"name": Nome do projeto
+## 💻 Tecnologias Utilizadas
 
-"version": Versão do projeto
+- Node.js
+- Fastify
+- npm
 
-"main": Arquivo principal de entrada
+## 🧠 Objetivo
 
-"scripts": Comandos que podem ser executados via terminal (ex: npm run test)
+Oferecer uma base sólida para iniciantes em desenvolvimento backend, preparando o aluno para projetos reais com foco em APIs REST.
 
-"license": Tipo de licença do projeto (ISC é padrão do Node)
+---
 
-### 4. Instalando o Fastify
-O que é o Fastify?
-Fastify é um framework web leve e rápido para Node.js, ideal para criar APIs de forma simples e performática.
-
-📚 Documentação oficial: https://fastify.dev/docs/latest/Guides/Getting-Started/
-
-Instalação:
-```
-npm install fastify
-```
-
-### 5. Criando o Primeiro Servidor
-Estrutura de pastas recomendada:
-
-```
-projeto-backend/
-├── node_modules/
-├── package.json
-└── srv/
-    └── server.js
-```
-Código do servidor – srv/server.js:
-
-```js
-import Fastify from 'fastify'
-
-const api = Fastify({
-  logger: true
-})
-
-api.get('/', function (request, reply) {
-  reply.send({ hello: 'world' })
-})
-
-const start = async () => {
-  try {
-    await api.listen({ port: 3000 })
-  } catch (err) {
-    api.log.error(err)
-    process.exit(1)
-  }
-}
-start()
-```
-
-### 6. Explicando o Código
-
-import Fastify from 'fastify': importa o framework
-
-Fastify({ logger: true }): habilita logs no console
-
-api.get('/', ...): cria uma rota GET no caminho /
-
-reply.send({ hello: 'world' }): resposta da API
-
-api.listen({ port: 3000 }): inicia o servidor na porta 3000
-
-try/catch: trata erros que possam ocorrer ao subir o servidor
-
-### 7. Testando a API
-Execute o servidor com:
-
-```
-node srv/server.js
-````
-Acesse no navegador:
-http://localhost:3000
-
-![alt text](image.png)
-
-
-
-Resposta esperada:
-
-
-{
-  "hello": "world"
-}
-
-
-## 📌 Dicas Extras
-Para que o import funcione, adicione "type": "module" no seu package.json.
-
-Se preferir usar require, adapte o código para o padrão CommonJS:
-
-
-const fastify = require('fastify')({ logger: true })
-
-fastify.get('/', (req, reply) => {
-  reply.send({ hello: 'world' })
-})
-
-fastify.listen({ port: 3000 })
-
-## 📋 Resumo da Aula
-
-Inicializamos o projeto Node com npm init -y
-Instalamos o framework Fastify com npm install fastify
-Criamos a estrutura de pastas e o arquivo server.js
-Desenvolvemos um servidor simples com uma rota GET
-Entendemos cada parte do código
-Rodamos a API localmente e testamos no navegador
+MFX Academy 🚀
