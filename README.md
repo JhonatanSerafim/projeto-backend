@@ -1,153 +1,107 @@
-# Aula 1 - Criando o Primeiro Servidor da API (Node.js + Fastify)
-## 🎯 Objetivo
-Nesta aula, vamos configurar o ambiente do nosso projeto backend, instalar o Fastify e criar nosso primeiro servidor rodando localmente.
+# Aula 2 - Criando e Configurando o Banco de Dados com Neon + PostgreSQL
+
+## 🎯 Objetivo  
+Nesta aula, vamos criar uma conta gratuita na plataforma **Neon.tech**, configurar um banco de dados PostgreSQL e criar a tabela `users` que será utilizada na nossa API.
+
+---
 
 ## 🧱 Passo a Passo
-### 1. Criação do Projeto
-Crie uma nova pasta com o nome do projeto e abra no VSCode:
 
-```txt
-mkdir projeto-backend
-cd projeto-backend
-code .
+### 1. Acessando o Neon.tech
+
+Acesse o site oficial do Neon:  
+🔗 [https://neon.tech](https://neon.tech)
+
+Clique em **"Start for free"** ou **"Sign Up"** para criar sua conta.
+
+---
+
+### 2. Criando o Projeto e o Banco de Dados
+
+Após o login:
+
+- Clique em **"New Project"**
+- Nome do banco: `lista-usuarios`
+- Tipo: **PostgreSQL**
+- Região: `sa-east-1` (para América do Sul)
+- Clique em **"Create Project"**
+
+---
+
+### 3. Visualizando a Connection String
+
+Após a criação:
+
+- Vá na aba **"Connection Details"**
+- Copie a **Connection String**.  
+Exemplo:
+
+postgresql://usuario:senha@ep-seuprojeto.sa-east-1.aws.neon.tech/lista-usuarios?sslmode=require
+
+### 4. Acessando o Editor SQL
+
+No painel do Neon:
+
+- Acesse a aba **"SQL Editor"**
+- Aqui você poderá executar comandos SQL diretamente
+
+---
+
+### 5. Criando a Tabela `users`
+
+Cole o seguinte SQL no editor e execute:
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(50) NOT NULL,
+  idade INTEGER NOT NULL,
+  cep VARCHAR(9) NOT NULL,
+  localidade VARCHAR(100) NOT NULL,
+  uf VARCHAR(2) NOT NULL,
+  bairro VARCHAR(30) NOT NULL,
+  logradouro VARCHAR(100) NOT NULL,
+  numero VARCHAR(20) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 ```
+### 6. Inserindo um Registro de Teste
 
-### 2. Inicializando o Projeto Node
-No terminal, dentro da pasta do projeto, execute:
+INSERT INTO users (nome, idade, cep, localidade, uf, bairro, logradouro, numero)
+VALUES ('João Silva', 30, '12345-678', 'São Paulo', 'SP', 'Centro', 'Rua das Flores', '123');
 
-```
-npm init -y
-```
-> O -y serve para aceitar todas as opções padrão automaticamente.
+## 7. Consultando os Dados
 
-### 3. Estrutura do package.json
-Após o comando, um arquivo chamado package.json será criado com o seguinte conteúdo:
+SELECT * FROM users;
 
-````json
-{
-  "name": "projeto-backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
-}
-````
-
-### Explicação dos campos principais:
-"name": Nome do projeto
-
-"version": Versão do projeto
-
-"main": Arquivo principal de entrada
-
-"scripts": Comandos que podem ser executados via terminal (ex: npm run test)
-
-"license": Tipo de licença do projeto (ISC é padrão do Node)
-
-### 4. Instalando o Fastify
-O que é o Fastify?
-Fastify é um framework web leve e rápido para Node.js, ideal para criar APIs de forma simples e performática.
-
-📚 Documentação oficial: https://fastify.dev/docs/latest/Guides/Getting-Started/
-
-Instalação:
-```
-npm install fastify
-```
-
-### 5. Criando o Primeiro Servidor
-Estrutura de pastas recomendada:
-
-```
-projeto-backend/
-├── node_modules/
-├── package.json
-└── srv/
-    └── server.js
-```
-Código do servidor – srv/server.js:
-
-```js
-import Fastify from 'fastify'
-
-const api = Fastify({
-  logger: true
-})
-
-api.get('/', function (request, reply) {
-  reply.send({ hello: 'world' })
-})
-
-const start = async () => {
-  try {
-    await api.listen({ port: 3000 })
-  } catch (err) {
-    api.log.error(err)
-    process.exit(1)
-  }
-}
-start()
-```
-
-### 6. Explicando o Código
-
-import Fastify from 'fastify': importa o framework
-
-Fastify({ logger: true }): habilita logs no console
-
-api.get('/', ...): cria uma rota GET no caminho /
-
-reply.send({ hello: 'world' }): resposta da API
-
-api.listen({ port: 3000 }): inicia o servidor na porta 3000
-
-try/catch: trata erros que possam ocorrer ao subir o servidor
-
-### 7. Testando a API
-Execute o servidor com:
-
-```
-node srv/server.js
-````
-Acesse no navegador:
-http://localhost:3000
-
-![alt text](image.png)
+## 8. Deletando Dados
+Deletar usuário por ID:
 
 
+DELETE FROM users WHERE id = 2;
 
-Resposta esperada:
+#### Deletar todos os registros:
 
 
-{
-  "hello": "world"
-}
+DELETE FROM users;
 
+> ⚠️ Atenção: o segundo comando apaga todos os dados da tabela.
 
 ## 📌 Dicas Extras
-Para que o import funcione, adicione "type": "module" no seu package.json.
+Adicione ?sslmode=require&channel_binding=require na connection string para usar com Node.js.
 
-Se preferir usar require, adapte o código para o padrão CommonJS:
+Campos VARCHAR permitem armazenar textos curtos (como nome, cidade, etc.).
 
-
-const fastify = require('fastify')({ logger: true })
-
-fastify.get('/', (req, reply) => {
-  reply.send({ hello: 'world' })
-})
-
-fastify.listen({ port: 3000 })
+O campo created_at é preenchido automaticamente com a data/hora da inserção.
 
 ## 📋 Resumo da Aula
+- Criamos uma conta gratuita no Neon.tech
+- Provisionamos um banco PostgreSQL chamado lista-usuarios
+- Criamos a tabela users via SQL
+- Inserimos e consultamos registros
+- Aprendemos comandos SQL básicos como INSERT, SELECT e DELETE
 
-Inicializamos o projeto Node com npm init -y
-Instalamos o framework Fastify com npm install fastify
-Criamos a estrutura de pastas e o arquivo server.js
-Desenvolvemos um servidor simples com uma rota GET
-Entendemos cada parte do código
-Rodamos a API localmente e testamos no navegador
+## 💡 Desafio
+Crie um segundo registro de usuário com dados fictícios e consulte com:
+
+SELECT * FROM users;
