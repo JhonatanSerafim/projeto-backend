@@ -1,4 +1,4 @@
-# Aula 03 - Criando um CRUD com Fastify + Neon (PostgreSQL)
+# Aula 04 - Criando um CRUD com Fastify + Neon (PostgreSQL)
 
 ## 🎯 Objetivo
 Implementar as 4 operações básicas de um CRUD (Create, Read, Update e Delete) utilizando o servidor Fastify integrado ao banco de dados PostgreSQL hospedado no Neon. Também abordaremos os conceitos de `RETURNING` e proteção contra `SQL Injection`.
