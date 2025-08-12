@@ -1,11 +1,11 @@
-# Aula 04 - Criando um CRUD com Fastify + Neon (PostgreSQL)
+# Aula 05 - Organizando o projeto em MVC
 
 ## 🎯 Objetivo
 Implementar as 4 operações básicas de um CRUD (Create, Read, Update e Delete) utilizando o servidor Fastify integrado ao banco de dados PostgreSQL hospedado no Neon. Também abordaremos os conceitos de `RETURNING` e proteção contra `SQL Injection`.
 
 ## 🧱 Passo a Passo
 
-### ✅ Etapa 1 – Preparar o banco de dados no Neon
+### ✅ Etapa 1 – Proteger os dados de acesso ao Banco de dados
 
 🔹 Acesse o Neon: https://neon.tech e entre com sua conta.
 
