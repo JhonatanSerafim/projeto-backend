@@ -1,193 +1,211 @@
-# Aula 05 - Organizando o projeto em MVC
 
-## 🎯 Objetivo
-Implementar as 4 operações básicas de um CRUD (Create, Read, Update e Delete) utilizando o servidor Fastify integrado ao banco de dados PostgreSQL hospedado no Neon. Também abordaremos os conceitos de `RETURNING` e proteção contra `SQL Injection`.
+# Aula 05 - Organizando o projeto e criando uma arquitetura
+
+## 🎯 Objetivo  
+Organizar o projeto em pastas, separar a estrutura e proteger dados sensíveis usando variáveis de ambiente.
+
+---
 
 ## 🧱 Passo a Passo
 
-### ✅ Etapa 1 – Proteger os dados de acesso ao Banco de dados
+### ✅ Etapa 1 – Proteger os dados de acesso ao Banco de Dados
 
-🔹 Acesse o Neon: https://neon.tech e entre com sua conta.
+1. Instalar o dotenv:
 
-Crie um novo projeto (caso ainda não tenha feito).
-
-🔹 Crie a tabela `users` no SQL Editor com o seguinte comando:
-
-```sql
-CREATE TABLE users(
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(50) NOT NULL,
-  idade INTEGER NOT NULL,
-  cep VARCHAR(9) NOT NULL,
-  localidade VARCHAR(100) NOT NULL,
-  uf VARCHAR(2) NOT NULL,
-  bairro VARCHAR(30) NOT NULL,
-  logradouro VARCHAR(100) NOT NULL,
-  numero VARCHAR(20) NOT NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+```bash
+npm install dotenv
 ```
 
-> 📌 Isso cria uma tabela com ID auto-incremental. (Feito na aula 02)
+2. Criar o arquivo `.env` na raiz do projeto (local/dev). Exemplo:
 
----
+```
+DATABASE_URL=postgresql://SEU_USUARIO:SUA_SENHA@host:porta/seu_db
+PG_SSL=true
+PG_SSL_REJECT_UNAUTHORIZED=true
+PORT=3000
+NODE_ENV=development
+```
 
-### ✅ Etapa 2 – Criar rota de listagem (READ)
+> **Importante:** Não comite o arquivo `.env` no repositório!
+
+3. Adicionar `.env` no `.gitignore` para evitar que seja versionado:
+
+```
+.env
+```
+
+4. Modificar o código para ler as variáveis de ambiente. Exemplo no arquivo principal (`server.js`):
 
 ```js
-api.get('/users', async (req, rep) => {
-  try {
-    const result = await pool.query('SELECT * FROM users')
-    rep.send(result.rows)
-  } catch (err) {
-    api.log.error(err)
-    rep.code(500).send({ error: 'Erro ao buscar usuários' })
-  }
-})
+import 'dotenv/config' // carrega o .env automaticamente (ESM)
+
+// Variáveis esperadas
+const DATABASE_URL = process.env.DATABASE_URL
+const PORT = process.env.PORT || 3000
 ```
 
-> 📍 Testar com: navegador ou Postman → `GET http://localhost:3000/users` (Feito na aula 03)
-
----
-
-### ✅ Etapa 3 – Criar rota de criação de novo usuário (POST)
-
-Arquivo: `srv/server.js`
+5. Ajustar a função que inicia o servidor para usar as variáveis:
 
 ```js
-api.post('/users', async (req, rep) => {
-  const { nome, idade, cep, localidade, uf, bairro, logradouro, numero } = req.body
+const start = async () => {
   try {
-    const result = await pool.query(
-      `INSERT INTO users (nome, idade, cep, localidade, uf, bairro, logradouro, numero)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [nome, idade, cep, localidade, uf, bairro, logradouro, numero]
-    )
-    rep.code(201).send(result.rows[0])
+    await api.listen({ port: PORT, host: '0.0.0.0' })
+    api.log.info(`Servidor rodando na porta ${PORT}`)
   } catch (err) {
     api.log.error(err)
-    rep.code(500).send({ error: 'Erro ao criar usuário' })
+    process.exit(1)
   }
-})
-```
-
-Teste no Postman com método `POST`:
-
-- URL: `http://localhost:3000/users`
-- Body (JSON):
-
-```json
-{
-  "nome": "João",
-  "idade": 30,
-  "cep": "12345-678",
-  "localidade": "São Paulo",
-  "uf": "SP",
-  "bairro": "Centro",
-  "logradouro": "Rua das Flores",
-  "numero": "123"
 }
 ```
 
-#### Por que usar `RETURNING *`?
-- Para retornar os dados do novo usuário inserido no banco.
-
-#### Por que usar `$1`, `$2`, etc.?
-- Para proteger contra SQL Injection.
-
----
-
-### ✅ Etapa 4 – Criar rota de atualização de usuário (PUT)
+6. Validar se as variáveis essenciais estão definidas (falha rápida em caso contrário):
 
 ```js
-api.put('/users/:id', async (req, rep) => {
-  const { id } = req.params
-  const { nome, idade, cep, localidade, uf, bairro, logradouro, numero } = req.body
-
-  try {
-    const result = await pool.query(
-      `UPDATE users SET
-         nome = $1, idade = $2, cep = $3, localidade = $4,
-         uf = $5, bairro = $6, logradouro = $7, numero = $8
-       WHERE id = $9 RETURNING *`,
-      [nome, idade, cep, localidade, uf, bairro, logradouro, numero, id]
-    )
-
-    if (result.rowCount === 0) {
-      rep.code(404).send({ error: 'Usuário não encontrado' })
-    } else {
-      rep.send(result.rows[0])
-    }
-  } catch (err) {
-    api.log.error(err)
-    rep.code(500).send({ error: 'Erro ao atualizar usuário' })
+const requireEnv = (key) => {
+  const val = process.env[key]
+  if (!val) {
+    console.error(`Faltando variável de ambiente: ${key}`)
+    process.exit(1)
   }
-})
-```
-
-Teste com:
-
-- Método: `PUT`
-- URL: `http://localhost:3000/users/1`
-- Body (JSON):
-
-```json
-{
-  "nome": "João Atualizado",
-  "idade": 31,
-  "cep": "98765-432",
-  "localidade": "Rio de Janeiro",
-  "uf": "RJ",
-  "bairro": "Copacabana",
-  "logradouro": "Avenida Atlântica",
-  "numero": "456"
+  return val
 }
 ```
 
-> Essa rota atualiza os dados do usuário e retorna o novo objeto.
+---
+
+### ✅ Etapa 2 – Criar a estrutura de pastas do projeto
+
+Dentro da pasta `src`, crie as seguintes pastas:
+
+```
+src/
+  ├── routes/
+  ├── repositories/
+  └── infra/
+```
+
+- **routes/** — Arquivos que definem as rotas HTTP e seus handlers.  
+- **repositories/** — Funções que fazem queries no banco de dados (lógica de acesso a dados).  
+- **infra/** — Configurações da infraestrutura, como conexão com banco, serviços externos, middlewares, etc.
 
 ---
 
-### ✅ Etapa 5 – Criar rota para deletar usuário (DELETE)
+### ✅ Exemplo de arquivo na pasta `infra`
+
+`src/infra/db.js`
 
 ```js
-api.delete('/users/:id', async (req, rep) => {
-  const { id } = req.params
+import pkg from 'pg'
+const { Pool } = pkg
 
-  try {
-    const result = await pool.query(
-      'DELETE FROM users WHERE id = $1 RETURNING *',
-      [id]
-    )
+const DATABASE_URL = process.env.DATABASE_URL
 
-    if (result.rowCount === 0) {
-      rep.code(404).send({ error: 'Usuário não encontrado' })
-    } else {
-      rep.send({
-        message: 'Usuário removido com sucesso',
-        usuario: result.rows[0]
-      })
-    }
-  } catch (err) {
-    api.log.error(err)
-    rep.code(500).send({ error: 'Erro ao deletar usuário' })
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: process.env.PG_SSL_REJECT_UNAUTHORIZED === 'true'
   }
 })
+
+export default pool
 ```
 
-Teste com:
+---
 
-- Método: `DELETE`
-- URL: `http://localhost:3000/users/1`
+### ✅ Etapa 3 – Organizar código em camadas (repository, routes e server)
+
+#### 3.1 - Repository: `src/repositories/users.repository.js`
+
+```js
+import pool from '../infra/db.js'
+
+export async function getAllUsers() {
+  const result = await pool.query('SELECT * FROM users')
+  return result.rows
+}
+
+export async function getServerTime() {
+  const result = await pool.query('SELECT NOW()')
+  return result.rows[0].now
+}
+```
+
+#### 3.2 - Routes: `src/routes/users.routes.js`
+
+```js
+import { getAllUsers, getServerTime } from '../repositories/users.repository.js'
+
+export default async function usersRoutes(api) {
+  api.get('/status', async (request, reply) => {
+    try {
+      const serverTime = await getServerTime()
+      reply.send({ serverTime })
+    } catch (err) {
+      api.log.error(err)
+      reply.code(500).send({ error: 'Erro ao conectar ao banco de dados' })
+    }
+  })
+
+  api.get('/users', async (request, reply) => {
+    try {
+      const users = await getAllUsers()
+      reply.send(users)
+    } catch (err) {
+      api.log.error(err)
+      reply.code(500).send({ error: 'Erro ao buscar usuários' })
+    }
+  })
+}
+```
+
+#### 3.3 - Server: `src/server.js`
+
+```js
+import Fastify from 'fastify'
+import dotenv from 'dotenv'
+import usersRoutes from './routes/users.routes.js'
+
+dotenv.config()
+
+const api = Fastify({ logger: true })
+
+api.get('/', async (request, reply) => {
+  reply.send({ hello: 'world' })
+})
+
+await api.register(usersRoutes)
+
+const start = async () => {
+  try {
+    await api.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' })
+  } catch (err) {
+    api.log.error(err)
+    process.exit(1)
+  }
+}
+
+start()
+```
+
+---
+
+### ✅ Benefícios dessa estrutura
+
+- Manutenção facilitada: cada parte do código tem sua responsabilidade clara.  
+- Escalabilidade: fácil adicionar novos recursos (produtos, eventos, etc.).  
+- Reutilização: lógica de banco centralizada nos repositórios.
 
 ---
 
 ## 📋 Resumo da Aula
 
-- Criamos todas as operações do CRUD (Create, Read, Update, Delete)
-- Utilizamos SQL parametrizado para evitar SQL Injection
-- Usamos `RETURNING *` para obter os dados inseridos, atualizados ou deletados
+- Protegemos dados sensíveis usando variáveis de ambiente com `dotenv`  
+- Criamos uma estrutura modularizada com pastas para rotas, repositórios e infraestrutura  
+- Implementamos funções para acessar o banco no repositório e rotas limpas que reutilizam essa lógica  
+- Aprendemos a iniciar o servidor com configuração dinâmica da porta e tratamento básico de erros
+
+---
 
 ## ⏭️ Próxima Aula
 
-Organização do projeto com MVC, uso do `.env` para variáveis de ambiente e separação do banco em arquivo `.db`.
+Conectaremos nosso backend com o frontend para criar uma aplicação completa.
