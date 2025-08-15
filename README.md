@@ -190,4 +190,4 @@ Teste com:
 
 ## ⏭️ Próxima Aula
 
-Organização do projeto com MVC, uso do `.env` para variáveis de ambiente e separação do banco em arquivo `.db`.
+Organizaçando e estruturando o projeto, uso do `.env` para variáveis de ambiente e separação do banco em arquivo `.db`.
