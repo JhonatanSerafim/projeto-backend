@@ -1,24 +1,102 @@
 
-# Aula 05 - Organizando o projeto e criando uma arquitetura
+# Aula 06 - Finalizando o Projeto: Conexão Frontend/Backend
 
 ## 🎯 Objetivo  
-Organizar o projeto em pastas, separar a estrutura e proteger dados sensíveis usando variáveis de ambiente.
+Conectar o frontend com o backend, implementando uma arquitetura limpa e organizada com separação clara de responsabilidades.
 
 ---
 
-## 🧱 Passo a Passo
+## 🌐 **Configuração do CORS (Cross-Origin Resource Sharing)**
 
-### ✅ Etapa 1 – Proteger os dados de acesso ao Banco de Dados
+### **O que é CORS?**
+CORS é um mecanismo de segurança que permite que aplicações web em um domínio acessem recursos de outro domínio. É essencial para o desenvolvimento frontend/backend.
 
-1. Instalar o dotenv:
+### **O que ele soluciona?**
+- **Comunicação Frontend/Backend**: Permite que seu frontend (localhost:3001) se comunique com a API (localhost:3000)
+- **Desenvolvimento Local**: Resolve erros de "CORS policy" durante o desenvolvimento
+- **Segurança**: Controla quais sites podem acessar sua API
 
+### **Configuração Básica (já implementada)**
+
+O CORS já está configurado no projeto! No arquivo `src/server.js`:
+
+```js
+import cors from '@fastify/cors'
+
+// Configuração básica do CORS
+await api.register(cors, {
+  origin: true, // Permite todas as origens (desenvolvimento)
+  credentials: true, // Permite cookies e headers de autenticação
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Headers permitidos
+})
+```
+
+### **Como Funciona**
+
+1. **`origin: true`** - Permite qualquer site acessar sua API (ideal para desenvolvimento)
+2. **`credentials: true`** - Permite envio de cookies e headers de autenticação
+3. **`methods`** - Define quais métodos HTTP são permitidos
+4. **`allowedHeaders`** - Define quais headers podem ser enviados
+
+### **Testando se está funcionando**
+
+Abra o console do navegador e teste:
+
+```javascript
+// Teste simples de CORS
+fetch('http://localhost:3000/users')
+  .then(response => response.json())
+  .then(data => console.log('✅ CORS funcionando:', data))
+  .catch(error => console.error('❌ Erro CORS:', error))
+```
+
+Se não aparecer erro de CORS, está funcionando perfeitamente! 🎉
+
+---
+
+## 🏗️ **Arquitetura do Projeto: Separação de Responsabilidades**
+
+### **Por que separar o código?**
+
+Antes, todo o código estava misturado no `server.js`:
+- Rotas HTTP
+- Queries do banco de dados
+- Lógica de negócio
+- Configurações do servidor
+
+**Problemas:**
+- Código difícil de manter
+- Difícil de testar
+- Difícil de reutilizar
+- Arquivo muito grande e confuso
+
+### **Solução: Arquitetura em Camadas**
+
+```
+src/
+  ├── server.js          ← Configuração do servidor e CORS
+  ├── routes/            ← Definição das rotas HTTP
+  │   └── users.routes.js
+  ├── repositories/      ← Acesso ao banco de dados
+  │   └── users.repository.js
+  └── infra/            ← Configurações de infraestrutura
+      └── db.js
+```
+
+---
+
+## 🧱 **Passo a Passo da Implementação**
+
+### ✅ **Etapa 1 – Proteger dados sensíveis com variáveis de ambiente**
+
+1. **Instalar o dotenv:**
 ```bash
 npm install dotenv
 ```
 
-2. Criar o arquivo `.env` na raiz do projeto (local/dev). Exemplo:
-
-```
+2. **Criar o arquivo `.env` na raiz do projeto:**
+```env
 DATABASE_URL=postgresql://SEU_USUARIO:SUA_SENHA@host:porta/seu_db
 PG_SSL=true
 PG_SSL_REJECT_UNAUTHORIZED=true
@@ -26,87 +104,63 @@ PORT=3000
 NODE_ENV=development
 ```
 
-> **Importante:** Não comite o arquivo `.env` no repositório!
+> **⚠️ Importante:** Nunca comite o arquivo `.env` no repositório!
 
-3. Adicionar `.env` no `.gitignore` para evitar que seja versionado:
-
+3. **Adicionar `.env` no `.gitignore`:**
 ```
 .env
 ```
 
-4. Modificar o código para ler as variáveis de ambiente. Exemplo no arquivo principal (`server.js`):
-
+4. **Configurar no `server.js`:**
 ```js
-import 'dotenv/config' // carrega o .env automaticamente (ESM)
+import dotenv from 'dotenv'
+dotenv.config()
 
-// Variáveis esperadas
-const DATABASE_URL = process.env.DATABASE_URL
 const PORT = process.env.PORT || 3000
 ```
 
-5. Ajustar a função que inicia o servidor para usar as variáveis:
-
-```js
-const start = async () => {
-  try {
-    await api.listen({ port: PORT, host: '0.0.0.0' })
-    api.log.info(`Servidor rodando na porta ${PORT}`)
-  } catch (err) {
-    api.log.error(err)
-    process.exit(1)
-  }
-}
-```
-
-6. Validar se as variáveis essenciais estão definidas (falha rápida em caso contrário):
-
-```js
-const requireEnv = (key) => {
-  const val = process.env[key]
-  if (!val) {
-    console.error(`Faltando variável de ambiente: ${key}`)
-    process.exit(1)
-  }
-  return val
-}
-```
-
 ---
 
-### ✅ Etapa 2 – Criar a estrutura de pastas do projeto
-
-Dentro da pasta `src`, crie as seguintes pastas:
+### ✅ **Etapa 2 – Criar estrutura de pastas organizada**
 
 ```
 src/
-  ├── routes/
-  ├── repositories/
-  └── infra/
+  ├── routes/           ← Rotas HTTP (endpoints da API)
+  ├── repositories/     ← Acesso ao banco de dados
+  └── infra/           ← Configurações (banco, middlewares, etc.)
 ```
 
-- **routes/** — Arquivos que definem as rotas HTTP e seus handlers.  
-- **repositories/** — Funções que fazem queries no banco de dados (lógica de acesso a dados).  
-- **infra/** — Configurações da infraestrutura, como conexão com banco, serviços externos, middlewares, etc.
+**Responsabilidades de cada pasta:**
+- **`routes/`** → Define como a API responde às requisições HTTP
+- **`repositories/`** → Faz as consultas no banco de dados
+- **`infra/`** → Configura conexões e serviços externos
 
 ---
 
-### ✅ Etapa 3 – Organizar código em camadas (repository, routes e server)
+### ✅ **Etapa 3 – Separar o código em camadas**
 
-#### 3.1 - Repository: `src/repositories/users.repository.js`
+#### **3.1 - Repository Layer (Camada de Dados)**
+
+**Arquivo:** `src/repositories/users.repository.js`
+
+**Responsabilidade:** Apenas acessar o banco de dados
 
 ```js
 import pool from '../infra/db.js'
 
+// Função para buscar todos os usuários
 export async function getAllUsers() {
   const result = await pool.query('SELECT * FROM users')
   return result.rows
 }
 
+// Função para buscar horário do servidor
 export async function getServerTime() {
   const result = await pool.query('SELECT NOW()')
   return result.rows[0].now
 }
 
+// Função para criar usuário
 export async function createUser(userData) {
   const { nome, idade, cep, localidade, uf, bairro, logradouro, numero } = userData
   const result = await pool.query(
@@ -117,6 +171,7 @@ export async function createUser(userData) {
   return result.rows[0]
 }
 
+// Função para atualizar usuário
 export async function updateUser(id, userData) {
   const { nome, idade, cep, localidade, uf, bairro, logradouro, numero } = userData
   const result = await pool.query(
@@ -129,6 +184,7 @@ export async function updateUser(id, userData) {
   return result.rows[0]
 }
 
+// Função para deletar usuário
 export async function deleteUser(id) {
   const result = await pool.query(
     'DELETE FROM users WHERE id = $1 RETURNING *',
@@ -138,15 +194,28 @@ export async function deleteUser(id) {
 }
 ```
 
-#### 3.2 - Routes: `src/routes/users.routes.js`
+**Vantagens do Repository:**
+- ✅ Código reutilizável
+- ✅ Fácil de testar
+- ✅ Fácil de manter
+- ✅ Separação clara de responsabilidades
+
+---
+
+#### **3.2 - Routes Layer (Camada de Rotas)**
+
+**Arquivo:** `src/routes/users.routes.js`
+
+**Responsabilidade:** Definir endpoints HTTP e chamar as funções do repository
 
 ```js
 import { getAllUsers, getServerTime, createUser, updateUser, deleteUser } from '../repositories/users.repository.js'
 
 export default async function usersRoutes(api) {
+  // Rota para verificar status do servidor
   api.get('/status', async (request, reply) => {
     try {
-      const serverTime = await getServerTime()
+      const serverTime = await getServerTime() // Chama o repository
       reply.send({ serverTime })
     } catch (err) {
       api.log.error(err)
@@ -154,9 +223,10 @@ export default async function usersRoutes(api) {
     }
   })
 
+  // Rota para listar usuários
   api.get('/users', async (request, reply) => {
     try {
-      const users = await getAllUsers()
+      const users = await getAllUsers() // Chama o repository
       reply.send(users)
     } catch (err) {
       api.log.error(err)
@@ -164,9 +234,10 @@ export default async function usersRoutes(api) {
     }
   })
 
+  // Rota para criar usuário
   api.post('/users', async (req, rep) => {
     try {
-      const user = await createUser(req.body)
+      const user = await createUser(req.body) // Chama o repository
       rep.code(201).send(user)
     } catch (err) {
       api.log.error(err)
@@ -174,10 +245,11 @@ export default async function usersRoutes(api) {
     }
   })
 
+  // Rota para atualizar usuário
   api.put('/users/:id', async (req, rep) => {
     const { id } = req.params
     try {
-      const user = await updateUser(id, req.body)
+      const user = await updateUser(id, req.body) // Chama o repository
       if (!user) {
         rep.code(404).send({ error: 'Usuário não encontrado' })
       } else {
@@ -189,10 +261,11 @@ export default async function usersRoutes(api) {
     }
   })
 
+  // Rota para deletar usuário
   api.delete('/users/:id', async (req, rep) => {
     const { id } = req.params
     try {
-      const user = await deleteUser(id)
+      const user = await deleteUser(id) // Chama o repository
       if (!user) {
         rep.code(404).send({ error: 'Usuário não encontrado' })
       } else {
@@ -209,23 +282,46 @@ export default async function usersRoutes(api) {
 }
 ```
 
-#### 3.3 - Server: `src/server.js`
+**Vantagens das Routes:**
+- ✅ Apenas definem endpoints HTTP
+- ✅ Chamam funções do repository
+- ✅ Tratam erros HTTP
+- ✅ Não fazem queries no banco
+
+---
+
+#### **3.3 - Server Layer (Camada do Servidor)**
+
+**Arquivo:** `src/server.js`
+
+**Responsabilidade:** Configurar o servidor e registrar as rotas
 
 ```js
 import dotenv from 'dotenv'
 import Fastify from 'fastify'
+import cors from '@fastify/cors'
 import usersRoutes from './routes/users.routes.js'
 
 dotenv.config()
 
 const api = Fastify({ logger: true })
 
+// Configuração do CORS
+await api.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+})
+
 const PORT = process.env.PORT || 3000
 
+// Rota raiz
 api.get('/', function (request, reply) {
   reply.send({ hello: 'world' })
 })
 
+// Registrar as rotas de usuários
 await api.register(usersRoutes)
 
 // Iniciar servidor
@@ -233,13 +329,48 @@ const start = async () => {
   try {
     await api.listen({ port: PORT, host: '0.0.0.0' })
     api.log.info(`Servidor rodando na porta ${PORT}`)
+    api.log.info('✅ CORS configurado e funcionando!')
   } catch (err) {
     api.log.error(err)
     process.exit(1)
   }
 }
+
 start()
 ```
+
+**Vantagens do Server:**
+- ✅ Apenas configura o servidor
+- ✅ Registra as rotas
+- ✅ Configura CORS
+- ✅ Inicia o servidor
+
+---
+
+## 🔄 **Fluxo de Dados: Como as Camadas se Comunicam**
+
+```
+Frontend (localhost:3001)
+        ↓
+   Server.js (Porta 3000)
+        ↓
+   Routes (users.routes.js)
+        ↓
+Repository (users.repository.js)
+        ↓
+   Banco de Dados (PostgreSQL)
+```
+
+**Exemplo prático - Listar usuários:**
+
+1. **Frontend** faz requisição para `GET /users`
+2. **Server.js** recebe e encaminha para as rotas
+3. **Routes** chama `getAllUsers()` do repository
+4. **Repository** executa `SELECT * FROM users`
+5. **Banco** retorna os dados
+6. **Repository** retorna para as routes
+7. **Routes** retorna para o server
+8. **Server** envia resposta para o frontend
 
 ---
 
@@ -625,25 +756,76 @@ async function deleteUser(id) {
 
 ---
 
-## ✅ **Benefícios dessa estrutura**
+## ✅ **Benefícios da Arquitetura em Camadas**
 
-- Manutenção facilitada: cada parte do código tem sua responsabilidade clara.  
-- Escalabilidade: fácil adicionar novos recursos (produtos, eventos, etc.).  
-- Reutilização: lógica de banco centralizada nos repositórios.
-- API bem documentada e fácil de usar no frontend.
+### **🔧 Manutenibilidade**
+- **Código organizado:** Cada arquivo tem uma responsabilidade específica
+- **Fácil de encontrar:** Problemas ficam isolados em uma camada
+- **Fácil de corrigir:** Mudanças não afetam outras partes
+
+### **📈 Escalabilidade**
+- **Novas funcionalidades:** Fácil adicionar novos endpoints
+- **Novos recursos:** Fácil criar novos tipos de dados (produtos, eventos, etc.)
+- **Reutilização:** Código pode ser usado em diferentes partes
+
+### **🧪 Testabilidade**
+- **Repository:** Pode ser testado independentemente
+- **Routes:** Pode ser testado sem banco de dados
+- **Server:** Pode ser testado isoladamente
+
+### **👥 Trabalho em Equipe**
+- **Desenvolvedores diferentes:** Podem trabalhar em camadas diferentes
+- **Conflitos reduzidos:** Menos chance de conflitos no Git
+- **Code review:** Mais fácil de revisar código específico
 
 ---
 
-## 📋 Resumo da Aula
+## 📋 **Resumo da Aula 06**
 
-- Protegemos dados sensíveis usando variáveis de ambiente com `dotenv`  
-- Criamos uma estrutura modularizada com pastas para rotas, repositórios e infraestrutura  
-- Implementamos funções para acessar o banco no repositório e rotas limpas que reutilizam essa lógica  
-- Aprendemos a iniciar o servidor com configuração dinâmica da porta e tratamento básico de erros
-- Documentamos todas as rotas da API com exemplos práticos de uso no frontend
+### **🎯 O que aprendemos:**
+
+1. **✅ CORS configurado** - Frontend e backend se comunicam perfeitamente
+2. **✅ Arquitetura em camadas** - Código organizado e responsabilidades separadas
+3. **✅ Repository Pattern** - Acesso ao banco centralizado e reutilizável
+4. **✅ Routes organizadas** - Endpoints HTTP limpos e bem estruturados
+5. **✅ Server simplificado** - Apenas configuração e inicialização
+6. **✅ API documentada** - Todos os endpoints explicados com exemplos
+7. **✅ Exemplos frontend** - Código JavaScript para usar a API
+
+### **🏗️ Estrutura final do projeto:**
+
+```
+projeto-backend/
+├── src/
+│   ├── server.js              ← Servidor + CORS + Rotas
+│   ├── routes/
+│   │   └── users.routes.js    ← Endpoints HTTP
+│   ├── repositories/
+│   │   └── users.repository.js ← Acesso ao banco
+│   └── infra/
+│       └── db.js              ← Conexão com banco
+├── .env                       ← Variáveis de ambiente
+├── .gitignore                 ← Arquivos não versionados
+└── README.md                  ← Documentação completa
+```
+
+### **🚀 Próximos passos:**
+
+- **Testar a API:** Usar os exemplos do README
+- **Conectar frontend:** Implementar as funções JavaScript
+- **Adicionar validações:** Verificar dados antes de salvar
+- **Implementar autenticação:** Sistema de login/logout
+- **Deploy:** Colocar em produção
 
 ---
 
-## ⏭️ Próxima Aula
+## 🎉 **Projeto Completo!**
 
-Conectaremos nosso backend com o frontend para criar uma aplicação completa.
+Agora você tem um backend completo e organizado que:
+- ✅ **Funciona** com CORS configurado
+- ✅ **É organizado** em camadas bem definidas
+- ✅ **É fácil de manter** e expandir
+- ✅ **Tem documentação** clara e exemplos práticos
+- ✅ **Está pronto** para conectar com o frontend
+
+**Parabéns! Você criou uma arquitetura profissional! 🚀**
