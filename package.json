@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js"
+    "dev": "node src/server.js"
   },
   "keywords": [],
   "author": "",
