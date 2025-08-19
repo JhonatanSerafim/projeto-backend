@@ -8,12 +8,12 @@ Cada aula está organizada em uma branch separada, contendo os arquivos e exempl
 
 Clique nos links abaixo para acessar cada branch diretamente:
 
-- [Aula 01 - Criando o primeiro servidor com Fastify](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula01)
-- [Aula 02 - SQL e NEON](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula02)
-- [Aula 03 - Rotas e métodos HTTP](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula03)
-- [Aula 04 - Estrutura de pastas e organização](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula04)
-- [Aula 05 - Organizando e criando nossas rotas CRUD](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula05)
-- [Aula 06 - Integração com front-end](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/tree/aula06)
+- [Aula 01 - Criando o primeiro servidor com Fastify](https://github.com/JhonatanSerafim/projeto-backend/tree/aula01)
+- [Aula 02 - SQL e NEON](https://github.com/JhonatanSerafim/projeto-backend/tree/aula02)
+- [Aula 03 - Rotas e métodos HTTP](https://github.com/JhonatanSerafim/projeto-backend/tree/aula03)
+- [Aula 04 - Estrutura de pastas e organização](https://github.com/JhonatanSerafim/projeto-backend/tree/aula04)
+- [Aula 05 - Organizando e criando nossas rotas CRUD](https://github.com/JhonatanSerafim/projeto-backend/tree/aula05)
+- [Aula 06 - Integração com front-end](https://github.com/JhonatanSerafim/projeto-backend/tree/aula06)
 
 > 🔁 Sinta-se à vontade para clonar o projeto e explorar cada etapa com calma.
 
