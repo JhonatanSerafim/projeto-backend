@@ -19,8 +19,11 @@ Clique nos links abaixo para acessar cada branch diretamente:
 
 ## 💻 Tecnologias Utilizadas
 
-- Node.js
+- Nodejs
 - Fastify
+- SQL
+- PostgreSQL
+- Neon Tech
 - npm
 
 ## 🧠 Objetivo
